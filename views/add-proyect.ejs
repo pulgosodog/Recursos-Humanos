@@ -1,21 +1,32 @@
+<%- include('partials/header', { titulo: 'Agregar Proyecto' }) %>
+
+<h2>Agregar un nuevo proyecto</h2>
+
 <form action="/agregar-proyecto" method="POST">
-    <label for="nombre">Nombre del Proyecto</label>
-    <input type="text" name="nombre" required>
-  
-    <label for="descripcion">Descripción</label>
-    <textarea name="descripcion" required></textarea>
-  
-    <label for="presupuesto">Presupuesto</label>
-    <input type="number" name="presupuesto" required>
-  
-    <label for="fecha_entrega">Fecha de Entrega</label>
-    <input type="date" name="fecha_entrega" required>
-  
-    <label for="empleados">Asignar Empleados</label>
-    <select name="empleados" multiple>
-      <!-- Opciones generadas dinámicamente -->
-    </select>
-  
-    <button type="submit">Agregar Proyecto</button>
-  </form>
-  
+  <label for="nombre">Nombre del Proyecto</label>
+  <input type="text" name="nombre" required>
+
+  <label for="descripcion">Descripción</label>
+  <textarea name="descripcion" required></textarea>
+
+  <label for="presupuesto">Presupuesto</label>
+  <input type="number" name="presupuesto" required>
+
+  <label for="fecha_entrega">Fecha de Entrega</label>
+  <input type="date" name="fecha_entrega" required>
+
+  <label for="empleados">Asignar Empleados</label>
+  <select name="empleados" multiple>
+    <% if (empleados && empleados.length > 0) { %>
+      <% empleados.forEach(emp => { %>
+        <option value="<%= emp.id %>"><%= emp.nombre %></option>
+      <% }) %>
+    <% } else { %>
+      <option disabled>No hay empleados disponibles</option>
+    <% } %>
+  </select>
+
+  <button type="submit">Agregar Proyecto</button>
+</form>
+
+<%- include('partials/footer') %>

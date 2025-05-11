@@ -1,12 +1,14 @@
 const express = require('express');
 const session = require('express-session');
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 const bcrypt = require('bcrypt');
 const app = express();
 const port = 3000;
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
+
 
 // Configuración de sesión
 app.use(session({
@@ -18,19 +20,62 @@ app.use(session({
 // Base de datos SQLite
 const db = new sqlite3.Database('./usuarios.db');
 
-// Crear tabla usuarios si no existe
-db.run(`
-  CREATE TABLE IF NOT EXISTS usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario TEXT UNIQUE,
-    contrasena TEXT
-  )
-`);
-
 function requireLogin(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
 }
+
+// Conexión a la base de datos RH.db
+const dbhrPath = path.join(__dirname, 'RH.db');
+const dbhr = new sqlite3.Database(dbhrPath, (err) => {
+  if (err) {
+    console.error('Error al abrir RH.db:', err.message);
+  } else {
+    console.log('Conectado a RH.db');
+  }
+});
+
+// Crear tabla empleados
+dbhr.run(`
+  CREATE TABLE IF NOT EXISTS empleados (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    asistencia INTEGER DEFAULT 3,
+    metricas INTEGER DEFAULT 3,
+    vacaciones INTEGER DEFAULT 0
+  )
+`);
+
+// Insertar empleados si está vacía
+dbhr.get('SELECT COUNT(*) AS total FROM empleados', (err, row) => {
+  if (row && row.total === 0) {
+    const stmt = dbhr.prepare(`
+      INSERT INTO empleados (nombre, asistencia, metricas, vacaciones)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const nombres = ['Ana', 'Luis', 'Carla', 'Pedro', 'Sofía'];
+    for (let nombre of nombres) {
+      stmt.run(nombre, Math.ceil(Math.random() * 3), Math.ceil(Math.random() * 3), Math.floor(Math.random() * 10));
+    }
+
+    stmt.finalize();
+    console.log('Empleados insertados en RH.db');
+  }
+});
+
+// Función para obtener empleados
+function obtenerEmpleados(callback) {
+  dbhr.all('SELECT * FROM empleados', (err, rows) => {
+    if (err) {
+      console.error('Error al obtener empleados:', err.message);
+      callback([]);
+    } else {
+      callback(rows);
+    }
+  });
+}
+
 
 // Rutas
 
@@ -77,10 +122,55 @@ app.get('/dashboard', requireLogin, (req, res) => {
 );
 
 app.get('/proyectos', requireLogin, (req, res) => {
-  res.render('proyects', {
-    titulo: 'Dashboard de Proyectos'
+  dbhr.all('SELECT * FROM proyectos', (err, proyectos) => {
+    if (err) {
+      console.error('Error al obtener proyectos:', err.message);
+      return res.send('Error al cargar proyectos');
+    }
+
+    res.render('proyects', {
+      titulo: 'Dashboard de Proyectos',
+      proyectos
+    });
   });
 });
+
+app.get('/proyectos/agregar', (req, res) => {
+  obtenerEmpleados((empleados) => {
+    res.render('add-proyect', { empleados });
+  });
+});
+
+app.post('/agregar-proyecto', (req, res) => {
+  const { nombre, descripcion, presupuesto, fecha_entrega, empleados } = req.body;
+
+  dbhr.run(`
+    INSERT INTO proyectos (nombre, descripcion, presupuesto, fecha_entrega)
+    VALUES (?, ?, ?, ?)
+  `, [nombre, descripcion, presupuesto, fecha_entrega], function(err) {
+    if (err) {
+      console.error('Error al insertar proyecto:', err.message);
+      return res.send('Error al guardar el proyecto.');
+    }
+
+    const proyectoId = this.lastID;
+
+    if (!empleados) return res.redirect('/proyectos');
+
+    const empleadosArray = Array.isArray(empleados) ? empleados : [empleados];
+    const stmt = dbhr.prepare(`
+      INSERT INTO proyecto_empleado (proyecto_id, empleado_id) VALUES (?, ?)
+    `);
+
+    for (let empId of empleadosArray) {
+      stmt.run(proyectoId, empId);
+    }
+
+    stmt.finalize();
+    res.redirect('/proyectos');
+  });
+});
+
 
 app.get('/proyectos/editar/:id', (req, res) => {
   console.log("Targeteando ruta editar")
@@ -127,6 +217,7 @@ app.post('/editar-proyecto/:id', (req, res) => {
   // Redirecciona de vuelta al dashboard o vista del proyecto
   res.redirect('/proyectos');
 });
+
 
 
 app.listen(port, () => {
