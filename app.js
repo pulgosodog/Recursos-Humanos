@@ -68,9 +68,66 @@ app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
-app.get('/dashboard', requireLogin, (req, res) => {
-  res.send(`Hola, ${req.session.user.usuario}. <a href="/logout">Salir</a>`);
+app.get('/dashboard', requireLogin, (req, res) => { 
+  res.render('dashboard', {
+    titulo: 'Dashboard',
+    usuario: req.session.user.usuario
+  });
+}
+);
+
+app.get('/proyectos', requireLogin, (req, res) => {
+  res.render('proyects', {
+    titulo: 'Dashboard de Proyectos'
+  });
 });
+
+app.get('/proyectos/editar/:id', (req, res) => {
+  console.log("Targeteando ruta editar")
+  const { id } = req.params;
+
+  // Simulación de datos desde la base de datos
+  const proyecto = {
+    id,
+    nombre: 'Proyecto X',
+    descripcion: 'Descripción actual',
+    presupuesto: 1500,
+    fecha_entrega: '2025-05-30',
+    empleados_asignados: [1, 3] // ids
+  };
+
+  const empleados = [
+    { id: 1, nombre: 'Ana Pérez' },
+    { id: 2, nombre: 'Luis Gómez' },
+    { id: 3, nombre: 'Carla Díaz' }
+  ];
+
+  const historial = [
+    { fecha: '2025-05-10', cambio: 'Se cambió la fecha de entrega' },
+    { fecha: '2025-04-20', cambio: 'Se actualizó el presupuesto' }
+  ];
+
+  res.render('edit-proyect', { proyecto, empleados, historial });
+});
+
+app.post('/editar-proyecto/:id', (req, res) => {
+  const { id } = req.params;
+  const { nombre, descripcion, presupuesto, fecha_entrega, empleados } = req.body;
+
+  // Aquí iría la lógica para actualizar en SQLite
+  console.log('Proyecto actualizado:', {
+    id,
+    nombre,
+    descripcion,
+    presupuesto,
+    fecha_entrega,
+    empleados: Array.isArray(empleados) ? empleados : [empleados]
+  });
+
+  // Redirecciona de vuelta al dashboard o vista del proyecto
+  res.redirect('/proyectos');
+});
+
 
 app.listen(port, () => {
   console.log(`Servidor en http://localhost:${port}`);

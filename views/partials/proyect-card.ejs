@@ -1,0 +1,19 @@
+<div class="tarjetas">
+    <% const proyectos = [
+      { id: 1, nombre: 'Proyecto Alfa', presupuesto: 5000, fecha_entrega: '2025-06-10' },
+      { id: 2, nombre: 'Proyecto Beta', presupuesto: 3000, fecha_entrega: '2025-07-15' }
+    ]; %>
+  
+    <% proyectos.forEach(p => { %>
+      <div class="tarjeta">
+        <h3><%= p.nombre %></h3>
+        <p><strong>Presupuesto:</strong> $<%= p.presupuesto %></p>
+        <p><strong>Entrega:</strong> <%= p.fecha_entrega %></p>
+  
+        <div class="acciones">
+          <a href="/proyectos/editar/<%= p.id %>" class="btn btn-editar">Editar</a>
+          <a href="/proyectos/papelera/<%= p.id %>" class="btn btn-papelera">Mover a Papelera</a>
+        </div>
+      </div>
+    <% }); %>
+  </div>
