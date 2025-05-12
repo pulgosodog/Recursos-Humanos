@@ -343,28 +343,113 @@ app.get('/proyectos/papelera/:id', requireLogin, (req, res) => {
     }
   });
 });
-// app.get('/proyectos/papelera/:id', requireLogin, (req, res) => {
-//   console.log("Hola papelera")
-//   const { id } = req.params;
-  
-//   if (papelera == 0) {
-//     dbhr.run('UPDATE proyectos SET papelera = 1 WHERE id = ?', [id], (err) => {
-//       if (err) {
-//         console.error('Error al mover proyecto a papelera:', err.message);
-//         return res.redirect('/proyectos');
-//       }
-//     });
-//   }
-//   else if (papelera == 1) {
-//     dbhr.run('UPDATE proyectos SET papelera = 0 WHERE id = ?', [id], (err) => {
-//       if (err) {
-//         console.error('Error al restaurar proyecto de papelera:', err.message);
-//         return res.redirect('/proyectos');
-//       }
-//     });
-//     res.redirect('/proyectos');
-//   }
-// });
+
+//Ruta para vacaiones
+app.get('/vacaciones', requireLogin, (req, res) => {
+  const query = `
+    SELECT 
+      v.id AS id_vacacion,
+      e.id AS id_empleado,
+      e.nombre AS empleado_nombre,
+      v.fechaInVaca AS inicio,
+      v.fechaFinVaca AS fin,
+      v.estado
+    FROM vacaciones v
+    INNER JOIN empleados e ON e.id = v.id_empleado
+  `;
+
+  dbhr.all(query, (err, vacaciones) => {
+    if (err) {
+      console.error('Error al obtener vacaciones:', err.message);
+      return res.send('Error al cargar vacaciones');
+    }
+
+    res.render('vacaciones', {
+      titulo: 'Dashboard de Vacaciones',
+      vacaciones
+    });
+  });
+});
+
+// Ruta para vacaciones aceptadas
+app.get('/vacaciones_acept', requireLogin, (req, res) => {
+  const query = `
+    SELECT 
+      e.id AS id_empleado,
+      e.nombre AS empleado_nombre,
+      v.fechaInVaca AS inicio,
+      v.fechaFinVaca AS fin,
+      v.estado
+    FROM vacaciones v
+    INNER JOIN empleados e ON e.id = v.id_empleado
+    WHERE v.estado = 2
+  `;
+
+  dbhr.all(query, (err, vacaciones) => {
+    if (err) {
+      console.error('Error al obtener vacaciones aceptadas:', err.message);
+      return res.send('Error al cargar vacaciones aceptadas');
+    }
+
+    res.render('vacaciones_acept', {
+      titulo: 'Vacaciones Aceptadas',
+      vacaciones
+    });
+  });
+});
+
+// Ruta para vacaciones denegadas
+app.get('/vacaciones_deneg', requireLogin, (req, res) => {
+  const query = `
+    SELECT 
+      e.id AS id_empleado,
+      e.nombre AS empleado_nombre,
+      v.fechaInVaca AS inicio,
+      v.fechaFinVaca AS fin,
+      v.estado
+    FROM vacaciones v
+    INNER JOIN empleados e ON e.id = v.id_empleado
+    WHERE v.estado = 3
+  `;
+
+  dbhr.all(query, (err, vacaciones) => {
+    if (err) {
+      console.error('Error al obtener vacaciones denegadas:', err.message);
+      return res.send('Error al cargar vacaciones denegadas');
+    }
+
+    res.render('vacaciones_deneg', {
+      titulo: 'Vacaciones Denegadas',
+      vacaciones
+    });
+  });
+});
+
+// Ruta para aceptar vacaciones (cambiar estado a 2)
+app.post('/vacaciones/aceptar/:id', requireLogin, (req, res) => {
+  const { id } = req.params;
+
+  dbhr.run('UPDATE vacaciones SET estado = 2 WHERE id = ?', [id], (err) => {
+    if (err) {
+      console.error('Error al aceptar vacaciones:', err.message);
+      return res.send('Error al actualizar el estado de las vacaciones.');
+    }
+    res.redirect('/vacaciones');
+  });
+});
+
+// Ruta para denegar vacaciones (cambiar estado a 3)
+app.post('/vacaciones/denegar/:id', requireLogin, (req, res) => {
+  const { id } = req.params;
+
+  dbhr.run('UPDATE vacaciones SET estado = 3 WHERE id = ?', [id], (err) => {
+    if (err) {
+      console.error('Error al denegar vacaciones:', err.message);
+      return res.send('Error al actualizar el estado de las vacaciones.');
+    }
+    res.redirect('/vacaciones');
+  });
+});
 
 app.listen(port, () => {
   console.log(`Servidor en http://localhost:${port}`);

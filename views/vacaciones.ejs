@@ -1,0 +1,31 @@
+<%- include('partials/header', { titulo: 'Dashboard de Proyectos' }) %>
+  <h1>Dashboard de Vacaciones</h1>
+  <h2>Pendientes</h2>
+  <div class="filtros">
+    <a href="/vacaciones_acept" class="btn btn-aceptada">Aceptada</a>
+    <a href="/vacaciones_deneg" class="btn btn-rechazada">Rechazada</a>
+  </div>
+
+<div class="tarjetas">
+    <% if (vacaciones && vacaciones.length > 0) { %>
+        <% vacaciones.filter(v => v.estado === 1).forEach(v => { %>
+            <div class="tarjeta">
+                <h3>Empleado: <%= v.empleado_nombre %></h3>
+                <p><strong>Inicio de vacaciones:</strong> <%= v.inicio %></p>
+                <p><strong>Fin de vacaciones:</strong> <%= v.fin %></p>
+                <p><strong>Estado:</strong> Pendiente</p>
+                <div class="acciones">
+                    <form action="/vacaciones/aceptar/<%= v.id_vacacion %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-aceptar">Aceptar</button>
+                    </form>
+                    <form action="/vacaciones/denegar/<%= v.id_vacacion %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-denegar">Denegar</button>
+                    </form>
+                </div>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <p>No hay registros de vacaciones disponibles.</p>
+    <% } %>
+</div>
+<%- include('partials/footer') %>
