@@ -1,12 +1,112 @@
-<%- include('partials/header', { titulo: 'Dashboard de Proyectos' }) %>
-  <h1>Dashboard de Vacaciones</h1>
-  <h2>Aceptadas</h2>
-  <div class="filtros">
-    <a href="/vacaciones" class="btn btn-pendiente">Pendiente</a>
-    <a href="/vacaciones_deneg" class="btn btn-rechazada">Rechazada</a>
-  </div>
+<%- include('partials/headervac', { titulo: 'Dashboard de vacaciones' }) %>
+<style>
+  header {
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
 
-<div class="tarjetas"></div>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding-top: 60px; /* Add padding to prevent overlap */
+    background-color: #f4f4f9;
+  }
+
+  .tarjetas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+  }
+
+  .tarjeta {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+  }
+
+  .tarjeta h3 {
+    margin-top: 0;
+  }
+
+  .tarjeta ul {
+    padding-left: 1.5rem;
+  }
+
+  .acciones {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn {
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-align: center;
+    display: inline-block;
+  }
+
+  .btn-aceptar {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-aceptar:hover {
+    background-color: #218838;
+  }
+
+  .btn-denegar {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-denegar:hover {
+    background-color: #c82333;
+  }
+
+  .btn-agregar {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-agregar:hover {
+    background-color: #0056b3;
+  }
+
+  .filtros {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+</style>
+
+<h2>Vacaciones Aceptadas</h2>
+<div class="filtros">
+  <a href="/vacaciones" class="btn btn-denegar">Pendiente</a>
+  <a href="/vacaciones_deneg" class="btn btn-denegar">Rechazada</a>
+</div>
+
+<div class="tarjetas">
   <% if (vacaciones && vacaciones.length > 0) { %>
     <% vacaciones.filter(v => v.estado === 2).forEach(v => { %>
       <div class="tarjeta">
@@ -20,4 +120,5 @@
     <p>No hay registros de vacaciones aceptadas disponibles.</p>
   <% } %>
 </div>
+
 <%- include('partials/footer') %>

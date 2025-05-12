@@ -11,56 +11,36 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Agregar la columna 'papelera' a la tabla 'proyectos'
-db.run(`ALTER TABLE proyectos
-         ADD COLUMN papelera INTEGER DEFAULT 0`, (err) => {
-  if (err) {
-    console.error('Error al agregar la columna:', err.message);
-    return;
-  }
-  console.log('Columna "papelera" agregada con éxito');
-});
-
-// Crear tabla vacaciones
-db.run(`
-  CREATE TABLE IF NOT EXISTS vacaciones (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_empleado INTEGER NOT NULL,
-    fechaInVaca TEXT NOT NULL,
-    fechaFinVaca TEXT NOT NULL,
-    estado INTEGER NOT NULL CHECK(estado IN (1, 2, 3)),
-    FOREIGN KEY (id_empleado) REFERENCES empleados (id)
-  )
-`, (err) => {
-  if (err) {
-    console.error('Error al crear la tabla vacaciones:', err.message);
-  } else {
-    console.log('Tabla vacaciones creada exitosamente');
-  }
-});
-
-// Insertar datos en la tabla vacaciones
-const insertQuery = `
-  INSERT INTO vacaciones (id_empleado, fechaInVaca, fechaFinVaca, estado)
-  VALUES (?, ?, ?, ?)
+// Cambiar el nombre del atributo requerimiento a rendimiento en la tabla rendimiento
+const alterQuery = `
+  PRAGMA foreign_keys = OFF;
+  CREATE TABLE rendimiento_new AS SELECT id_empleado, nombre_emp, metrica_emp, asist_emp, requerimiento AS rendimiento FROM rendimiento;
+  DROP TABLE rendimiento;
+  ALTER TABLE rendimiento_new RENAME TO rendimiento;
+  PRAGMA foreign_keys = ON;
 `;
 
-const vacaciones = [
-  { id_empleado: 1, fechaInVaca: '2025-06-01', fechaFinVaca: '2025-06-10', estado: 1 },
-  { id_empleado: 2, fechaInVaca: '2025-07-15', fechaFinVaca: '2025-07-20', estado: 2 },
-  { id_empleado: 3, fechaInVaca: '2025-08-05', fechaFinVaca: '2025-08-12', estado: 3 },
-  { id_empleado: 4, fechaInVaca: '2025-09-01', fechaFinVaca: '2025-09-07', estado: 1 },
-  { id_empleado: 5, fechaInVaca: '2025-10-10', fechaFinVaca: '2025-10-17', estado: 2 }
-];
+db.exec(alterQuery, (err) => {
+  if (err) {
+    console.error('Error al cambiar el nombre del atributo requerimiento a rendimiento:', err.message);
+  } else {
+    console.log('Nombre del atributo cambiado correctamente a rendimiento');
+  }
+});
 
-vacaciones.forEach((v) => {
-  db.run(insertQuery, [v.id_empleado, v.fechaInVaca, v.fechaFinVaca, v.estado], (err) => {
-    if (err) {
-      console.error('Error al insertar datos en la tabla vacaciones:', err.message);
-    } else {
-      console.log(`Vacaciones insertadas para id_empleado: ${v.id_empleado}`);
-    }
-  });
+// Insertar datos de la tabla empleados a la tabla rendimiento con el atributo rendimiento en 0
+const query = `
+  INSERT INTO rendimiento (id_empleado, nombre_emp, metrica_emp, asist_emp, rendimiento)
+  SELECT id, nombre, metricas, asistencia, '0'
+  FROM empleados
+`;
+
+db.run(query, (err) => {
+  if (err) {
+    console.error('Error al insertar datos en la tabla rendimiento:', err.message);
+  } else {
+    console.log('Datos insertados correctamente en la tabla rendimiento');
+  }
 });
 
 // Cerrar la conexión

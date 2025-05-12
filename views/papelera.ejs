@@ -1,13 +1,160 @@
-<%- include('partials/header', { titulo: 'Dashboard de Proyectos' }) %>
+<%- include('partials/header', { titulo: 'Proyectos en Papelera' }) %>
+<style>
+  header {
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  footer {
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background-color: #fff;
+    z-index: 1000;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding-top: 60px; /* Add padding to prevent overlap */
+    background-color: #f4f4f9;
+  }
+
+  main {
+    flex: 1;
+  }
+
+  body {
+    padding-top: 60px; /* Adjust based on header height */
+    padding-bottom: 40px; /* Adjust based on footer height */
+  }
+</style>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f4f4f9;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .tarjetas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+  }
+
+  .tarjeta {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+  }
+
+  .tarjeta h3 {
+    margin-bottom: 10px;
+    color: #007bff;
+  }
+
+  .tarjeta p {
+    margin: 5px 0;
+    color: #555;
+  }
+
+  .tarjeta ul {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+  }
+
+  .tarjeta ul li {
+    color: #555;
+  }
+
+  .acciones {
+    margin-top: 15px;
+  }
+
+  .acciones .btn {
+    display: inline-block;
+    padding: 10px 15px;
+    margin: 5px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    color: #fff;
+  }
+
+  .btn-editar {
+    background-color: #007bff;
+  }
+
+  .btn-editar:hover {
+    background-color: #0056b3;
+  }
+
+  .btn-papelera {
+    background-color: #28a745;
+  }
+
+  .btn-papelera:hover {
+    background-color: #218838;
+  }
+
+  .btn-danger {
+    position: fixed;
+    top: 130px;
+    left: 20px;
+    background-color: #dc3545;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+</style>
 
 <div style="margin-bottom: 1rem;">
   <a href="/proyectos" class="btn btn-danger">Regresar a proyectos activos</a>
 </div>
 
-<h2>Proyectos en papelera</h2>
+<h2>Proyectos en Papelera</h2>
 
 <div class="tarjetas">
-<% proyectos = proyectos.filter(p => p.papelera === 1); %>
+  <% proyectos = proyectos.filter(p => p.papelera === 1); %>
   <% if (proyectos.length > 0) { %>
     <% proyectos.forEach(p => { %>
       <div class="tarjeta">
@@ -36,6 +183,5 @@
     <p>No hay proyectos registrados todavía.</p>
   <% } %>
 </div>
-
 
 <%- include('partials/footer') %>

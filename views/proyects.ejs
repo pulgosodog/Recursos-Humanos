@@ -1,5 +1,133 @@
 <%- include('partials/header', { titulo: 'Dashboard de Proyectos' }) %>
+<style>
+  header {
+    width: 100%;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding-top: 60px; /* Add padding to prevent overlap */
+    background-color: #f4f4f9;
+  }
+  .tarjetas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+  }
 
+  .tarjeta {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+  }
+
+  .tarjeta h3 {
+    margin-top: 0;
+  }
+
+  .tarjeta ul {
+    padding-left: 1.5rem;
+  }
+
+  .acciones {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn {
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    text-align: center;
+    display: inline-block;
+  }
+
+  .btn-editar {
+    background-color: #6c757d;
+    color: white;
+  }
+
+  .btn-editar:hover {
+    background-color: #5a6268;
+  }
+
+  .btn-papelera {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-papelera:hover {
+    background-color: #c82333;
+  }
+</style>
+<style>
+  .acciones {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.5rem;
+    background-color: #f1f1f1;
+  }
+
+  .btn-primary {
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    z-index: 1000;
+    background-color: #28a745;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-align: center;
+    display: inline-block;
+  }
+
+  .btn-primary:hover {
+    background-color: #218838;
+  }
+
+  .btn-danger {
+    position: fixed;
+    top: 80px;
+    left: 180px;
+    z-index: 1000;
+    background-color: #3eaaed;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-align: center;
+    display: inline-block;
+  }
+
+  .btn-danger:hover {
+    background-color: #0056b3;
+  }
+</style>
 <div style="margin-bottom: 1rem;">
   <a href="/proyectos/agregar" class="btn btn-primary">Agregar Proyecto</a>
   <a href="/proyectos/papelera" class="btn btn-danger">Ver Papelera</a>

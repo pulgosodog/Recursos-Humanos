@@ -9,6 +9,8 @@ const port = 3000;
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 
+// Configurar la carpeta 'public' para archivos estáticos
+app.use(express.static('public'));
 
 // Configuración de sesión
 app.use(session({
@@ -372,30 +374,68 @@ app.get('/vacaciones', requireLogin, (req, res) => {
 });
 
 // Ruta para vacaciones aceptadas
-app.get('/vacaciones_acept', requireLogin, (req, res) => {
-  const query = `
-    SELECT 
-      e.id AS id_empleado,
-      e.nombre AS empleado_nombre,
-      v.fechaInVaca AS inicio,
-      v.fechaFinVaca AS fin,
-      v.estado
+app.post('/vacaciones_acept/:id', requireLogin, (req, res) => {
+  const { id } = req.params;
+
+  const queryVacacion = `
+    SELECT v.id_empleado, v.fechaInVaca, v.fechaFinVaca, e.vacaciones_acumuladas AS vacaciones
     FROM vacaciones v
-    INNER JOIN empleados e ON e.id = v.id_empleado
-    WHERE v.estado = 2
+    INNER JOIN empleados e ON v.id_empleado = e.id
+    WHERE v.id = ?
   `;
 
-  dbhr.all(query, (err, vacaciones) => {
-    if (err) {
-      console.error('Error al obtener vacaciones aceptadas:', err.message);
-      return res.send('Error al cargar vacaciones aceptadas');
+  dbhr.get(queryVacacion, [id], (err, row) => {
+    if (err || !row) {
+      console.error('Error al obtener datos de la vacación:', err ? err.message : 'Vacación no encontrada');
+      return res.send('Error al procesar la solicitud.');
     }
 
-    res.render('vacaciones_acept', {
-      titulo: 'Vacaciones Aceptadas',
-      vacaciones
+    const { id_empleado, fechaInVaca, fechaFinVaca, vacaciones } = row;
+
+    // Calcula los días de vacaciones
+    const diasVacaciones = Math.ceil((new Date(fechaFinVaca) - new Date(fechaInVaca)) / (1000 * 60 * 60 * 24)) + 1;
+
+    if (isNaN(diasVacaciones) || diasVacaciones <= 0) {
+      console.error('Error: Las fechas de inicio o fin de vacaciones no son válidas.');
+      return res.send('Error: Las fechas de inicio o fin de vacaciones no son válidas.');
+    }
+
+    console.log(`ID del empleado: ${id_empleado}`);
+    console.log(`Días de vacaciones calculados: ${diasVacaciones}`);
+    console.log(`Vacaciones acumuladas: ${vacaciones}`);
+
+    // Verifica si el empleado tiene suficientes vacaciones acumuladas
+    if (diasVacaciones > vacaciones) {
+      return res.send('Error: No se pueden aceptar más vacaciones de las acumuladas.');
+    }
+
+    // Actualiza las vacaciones acumuladas del empleado
+    const updateVacaciones = `
+      UPDATE empleados
+      SET vacaciones_acumuladas = vacaciones_acumuladas - ?
+      WHERE id = ?
+    `;
+
+    dbhr.run(updateVacaciones, [diasVacaciones, id_empleado], (err) => {
+      if (err) {
+        console.error('Error al actualizar las vacaciones del empleado:', err.message);
+        return res.send('Error al actualizar las vacaciones del empleado.');
+      }
+
+      // Cambia el estado de la vacación a "Aceptada" (estado = 2)
+      dbhr.run('UPDATE vacaciones SET estado = 2 WHERE id = ?', [id], (err) => {
+        if (err) {
+          console.error('Error al aceptar vacaciones:', err.message);
+          return res.send('Error al actualizar el estado de las vacaciones.');
+        }
+        res.redirect('/vacaciones');
+      });
     });
   });
+});
+
+app.post('/vacaciones_acept/:id', requireLogin, (req, res) => {
+  // Código para manejar la solicitud POST
 });
 
 // Ruta para vacaciones denegadas
@@ -451,6 +491,91 @@ app.post('/vacaciones/denegar/:id', requireLogin, (req, res) => {
   });
 });
 
+// Ruta para mostrar la lista de empleados con opción de agregar vacaciones
+app.get('/vacaciones/agregar', requireLogin, (req, res) => {
+  const query = `SELECT id, nombre, vacaciones_acumuladas FROM empleados`;
+
+  dbhr.all(query, (err, empleados) => {
+    if (err) {
+      console.error('Error al obtener empleados:', err.message);
+      return res.send('Error al cargar empleados.');
+    }
+
+    res.render('agregVac', {
+      titulo: 'Agregar Vacaciones',
+      empleados
+    });
+  });
+});
+
+// Ruta para procesar la adición de días de vacaciones
+app.post('/vacaciones/agregar/:id', requireLogin, (req, res) => {
+  const { id } = req.params;
+  const { dias } = req.body;
+
+  const query = `
+    UPDATE empleados
+    SET vacaciones = vacaciones + ?
+    WHERE id = ?
+  `;
+
+  dbhr.run(query, [dias, id], (err) => {
+    if (err) {
+      console.error('Error al agregar días de vacaciones:', err.message);
+      return res.send('Error al actualizar las vacaciones.');
+    }
+
+    res.redirect('/vacaciones/agregar');
+  });
+});
+
+// Ruta para procesar la adición de vacaciones
+app.post('/vacaciones/agregar', requireLogin, (req, res) => {
+  const { empleado, fechaInVaca, fechaFinVaca } = req.body;
+console.log(empleado, fechaInVaca, fechaFinVaca);
+  const query = `
+    INSERT INTO vacaciones (id_empleado, fechaInVaca, fechaFinVaca, estado)
+    VALUES (?, ?, ?, 1)
+  `;
+
+  dbhr.run(query, [empleado, fechaInVaca, fechaFinVaca], (err) => {
+    if (err) {
+      console.error('Error al agregar vacaciones:', err.message);
+      return res.send('Error al agregar las vacaciones.');
+    }
+
+    res.redirect('/vacaciones');
+  });
+});
+
+// Ruta para mostrar vacaciones aceptadas
+app.get('/vacaciones_acept', requireLogin, (req, res) => {
+  const query = `
+    SELECT 
+      v.id AS id_vacacion,
+      e.id AS id_empleado,
+      e.nombre AS empleado_nombre,
+      v.fechaInVaca AS inicio,
+      v.fechaFinVaca AS fin,
+      v.estado
+    FROM vacaciones v
+    INNER JOIN empleados e ON e.id = v.id_empleado
+    WHERE v.estado = 2
+  `;
+
+  dbhr.all(query, (err, vacaciones) => {
+    if (err) {
+      console.error('Error al obtener vacaciones aceptadas:', err.message);
+      return res.send('Error al cargar vacaciones aceptadas');
+    }
+
+    res.render('vacaciones_acept', {
+      titulo: 'Vacaciones Aceptadas',
+      vacaciones
+    });
+  });
+});
+
 app.listen(port, () => {
   console.log(`Servidor en http://localhost:${port}`);
 });
@@ -468,5 +593,31 @@ const crearUsuarioInicial = async () => {
     }
   });
 };
+
+// Ruta para mostrar el rendimiento de los empleados
+app.get('/rendimiento', requireLogin, (req, res) => {
+  const query = `
+    SELECT 
+      e.id AS id_empleado,
+      e.nombre AS nombre_emp,
+      r.metrica_emp,
+      r.asist_emp,
+      r.rendimiento
+    FROM rendimiento r
+    INNER JOIN empleados e ON e.id = r.id_empleado
+  `;
+
+  dbhr.all(query, (err, rendimiento) => {
+    if (err) {
+      console.error('Error al obtener datos de rendimiento:', err.message);
+      return res.send('Error al cargar datos de rendimiento.');
+    }
+
+    res.render('rendimiento', {
+      titulo: 'Rendimiento de Empleados',
+      rendimiento
+    });
+  });
+});
 
 crearUsuarioInicial();

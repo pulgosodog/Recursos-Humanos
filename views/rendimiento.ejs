@@ -1,0 +1,74 @@
+<%- include('partials/header') %>
+<div class="container">
+    <h1>Datos de Rendimiento</h1>
+
+    <!-- Formulario para agregar rendimiento -->
+    <form action="/guardar-rendimiento" method="POST">
+        <div class="form-group">
+            <label for="empleado">Empleado:</label>
+            <select id="empleado" name="empleado" class="form-control" required>
+                <% if (rendimiento&& rendimiento.length > 0) { %>
+                    <% rendimiento.forEach(function(empleado) { %>
+                        <option value="<%= rendimiento.id_empleado %>"><%= rendimiento.nombre_emp %></option>
+                    <% }); %>
+                <% } else { %>
+                    <option value="">No hay empleados disponibles</option>
+                <% } %>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="rendimiento">Rendimiento:</label>
+            <input type="text" id="rendimiento" name="rendimiento" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="comentarios">Comentarios:</label>
+            <textarea id="comentarios" name="comentarios" class="form-control" rows="4"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+    </form>
+
+    <!-- Tarjetas para mostrar los rendimientos -->
+    <div class="tarjetas">
+        <% if (rendimiento && rendimiento.length > 0) { %>
+            <% rendimiento.forEach(function(rendimiento) { %>
+                <div class="tarjeta">
+                    <h3><%= rendimiento.nombre_emp %></h3>
+                    <p><strong>Rendimiento:</strong> <%= rendimiento.rendimiento %></p>
+                    <p><strong>Comentarios:</strong> <%= rendimiento.comentarios %></p>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <p>No hay datos de rendimiento disponibles.</p>
+        <% } %>
+    </div>
+</div>
+<%- include('partials/footer') %>
+
+<style>
+  .tarjetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .tarjeta {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+  }
+
+  .tarjeta h3 {
+    margin-top: 0;
+    color: #007bff;
+  }
+
+  .tarjeta p {
+    margin: 5px 0;
+    color: #555;
+  }
+</style>

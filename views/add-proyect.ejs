@@ -1,5 +1,66 @@
 <%- include('partials/header', { titulo: 'Agregar Proyecto' }) %>
+<style>
+  header {
+    width: 100%;
+    box-sizing: border-box;
+  }
+</style>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f4f4f9;
+  }
 
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px; /* Increased the max-width to make the form wider */
+  }
+
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+  }
+
+  input, textarea, select, button {
+    width: 95%;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+
+  button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+</style>
 <h2>Agregar un nuevo proyecto</h2>
 
 <form action="/agregar-proyecto" method="POST">
@@ -10,7 +71,7 @@
   <textarea name="descripcion" required></textarea>
 
   <label for="presupuesto">Presupuesto</label>
-  <input type="number" name="presupuesto" required>
+  <input type="number" name="presupuesto" min="100" value="100" required>
 
   <label for="fecha_entrega">Fecha de Entrega</label>
   <input type="date" name="fecha_entrega" required>

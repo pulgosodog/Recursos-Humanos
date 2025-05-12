@@ -1,11 +1,15 @@
-<%- include('partials/header', { titulo: 'Editar Proyecto' }) %>
+<%- include('partials/headervac', { titulo: 'Agregar Vacaciones' }) %>
 <style>
   header {
     width: 100%;
     box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-</style>
-<style>
   body {
     font-family: Arial, sans-serif;
     display: flex;
@@ -39,7 +43,7 @@
     color: #555;
   }
 
-  input, textarea, select, button {
+  input, select, button {
     width: 95%;
     margin-bottom: 15px;
     padding: 10px;
@@ -61,33 +65,27 @@
   }
 </style>
 
-<h2>Editar Proyecto</h2>
+<h2>Agregar Vacaciones</h2>
 
-<form action="/editar-proyecto/<%= proyecto.id %>" method="POST">
-  <label for="nombre">Nombre del Proyecto</label>
-  <input type="text" name="nombre" value="<%= proyecto.nombre %>" required>
-
-  <label for="descripcion">Descripción</label>
-  <textarea name="descripcion" required><%= proyecto.descripcion %></textarea>
-
-  <label for="presupuesto">Presupuesto</label>
-  <input type="number" name="presupuesto" value="<%= proyecto.presupuesto %>" min="100" required>
-
-  <label for="fecha_entrega">Fecha de Entrega</label>
-  <input type="date" name="fecha_entrega" value="<%= proyecto.fecha_entrega %>" required>
-
-  <label for="empleados">Asignar Empleados</label>
-  <select name="empleados" multiple>
+<form action="/vacaciones/agregar" method="POST">
+  <label for="empleado">Seleccionar Empleado</label>
+  <select name="empleado" required>
     <% if (empleados && empleados.length > 0) { %>
-      <% empleados.forEach(e => { %>
-        <option value="<%= e.id %>" <%= Array.isArray(proyecto.empleados_asignados) && proyecto.empleados_asignados.includes(e.id) ? 'selected' : '' %>><%= e.nombre %></option>
+      <% empleados.forEach(emp => { %>
+        <option value="<%= emp.id %>"><%= emp.nombre %></option>
       <% }) %>
     <% } else { %>
       <option disabled>No hay empleados disponibles</option>
     <% } %>
   </select>
 
-  <button type="submit">Guardar Cambios</button>
+  <label for="fechaInVaca">Fecha de Inicio</label>
+  <input type="date" name="fechaInVaca" required>
+
+  <label for="fechaFinVaca">Fecha de Fin</label>
+  <input type="date" name="fechaFinVaca" required>
+
+  <button type="submit">Agregar Vacaciones</button>
 </form>
 
 <%- include('partials/footer') %>

@@ -1,10 +1,81 @@
-<h2>Iniciar sesión</h2>
-<% if (error) { %>
-  <p style="color:red;"><%= error %></p>
-<% } %>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión</title>
+  <style>
+    /* Estilo general */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-<form method="POST" action="/login">
-  <input type="text" name="usuario" placeholder="Usuario" required>
-  <input type="password" name="contrasena" placeholder="Contraseña" required>
-  <button type="submit">Entrar</button>
-</form>
+    /* Contenedor del login */
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Estilo de los inputs */
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    /* Botón de enviar */
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Mensaje de error */
+    p {
+      font-size: 14px;
+      margin: 10px 0;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Iniciar sesión</h2>
+    <% if (error) { %>
+      <p><%= error %></p>
+    <% } %>
+    <form method="POST" action="/login">
+      <input type="text" name="usuario" placeholder="Usuario" required>
+      <input type="password" name="contrasena" placeholder="Contraseña" required>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+</body>
+</html>
