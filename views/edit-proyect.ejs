@@ -15,18 +15,10 @@
       <label for="empleados">Asignar Empleados</label>
       <select name="empleados" multiple>
         <% empleados.forEach(e => { %>
-          <option value="<%= e.id %>" <%= proyecto.empleados_asignados.includes(e.id) ? 'selected' : '' %>><%= e.nombre %></option>
+          <option value="<%= e.id %>" <%= Array.isArray(proyecto.empleados_asignados) && proyecto.empleados_asignados.includes(e.id) ? 'selected' : '' %>><%= e.nombre %></option>
         <% }); %>
       </select>
   
       <button type="submit">Guardar Cambios</button>
     </form>
-  
-    <h4>Historial de Cambios</h4>
-    <ul>
-      <% historial.forEach(h => { %>
-        <li><%= h.fecha %>: <%= h.cambio %></li>
-      <% }); %>
-    </ul>
   </div>
-  

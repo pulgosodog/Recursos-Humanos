@@ -5,6 +5,17 @@
         <h3><%= p.nombre %></h3>
         <p><strong>Presupuesto:</strong> $<%= p.presupuesto %></p>
         <p><strong>Entrega:</strong> <%= p.fecha_entrega %></p>
+        <p><strong>Descripción:</strong> <%= p.descripcion %></p>
+        <p><strong>Empleados Asignados:</strong></p>
+        <ul>
+          <% if (p.empleados && p.empleados.length > 0) { %>
+            <% p.empleados.forEach(e => { %>
+              <li><%= e.nombre %></li>
+            <% }); %>
+          <% } else { %>
+            <li>No hay empleados asignados</li>
+          <% } %>
+        </ul>
 
         <div class="acciones">
           <a href="/proyectos/editar/<%= p.id %>" class="btn btn-editar">Editar</a>

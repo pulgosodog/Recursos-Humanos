@@ -128,12 +128,53 @@ app.get('/proyectos', requireLogin, (req, res) => {
       return res.send('Error al cargar proyectos');
     }
 
-    res.render('proyects', {
-      titulo: 'Dashboard de Proyectos',
-      proyectos
+    const proyectosConEmpleados = [];
+    let pendientes = proyectos.length;
+
+    if (pendientes === 0) {
+      return res.render('proyects', {
+        titulo: 'Dashboard de Proyectos',
+        proyectos: proyectosConEmpleados
+      });
+    }
+
+    proyectos.forEach((proyecto) => {
+      dbhr.all('SELECT e.* FROM empleados e INNER JOIN proyecto_empleado pe ON e.id = pe.empleado_id WHERE pe.proyecto_id = ?', [proyecto.id], (err, empleados) => {
+        if (err) {
+          console.error('Error al obtener empleados del proyecto:', err.message);
+          empleados = [];
+        }
+
+        proyectosConEmpleados.push({
+          ...proyecto,
+          empleados
+        });
+
+        pendientes--;
+
+        if (pendientes === 0) {
+          res.render('proyects', {
+            titulo: 'Dashboard de Proyectos',
+            proyectos: proyectosConEmpleados
+          });
+        }
+      });
     });
   });
 });
+// app.get('/proyectos', requireLogin, (req, res) => {
+//   dbhr.all('SELECT * FROM proyectos', (err, proyectos) => {
+//     if (err) {
+//       console.error('Error al obtener proyectos:', err.message);
+//       return res.send('Error al cargar proyectos');
+//     }
+
+//     res.render('proyects', {
+//       titulo: 'Dashboard de Proyectos',
+//       proyectos
+//     });
+//   });
+// });
 
 app.get('/proyectos/agregar', (req, res) => {
   obtenerEmpleados((empleados) => {
@@ -171,54 +212,77 @@ app.post('/agregar-proyecto', (req, res) => {
   });
 });
 
-
-app.get('/proyectos/editar/:id', (req, res) => {
-  console.log("Targeteando ruta editar")
+// Ruta para editar un proyecto (obtener datos desde la base de datos)
+app.get('/proyectos/editar/:id', requireLogin, (req, res) => {
   const { id } = req.params;
 
-  // Simulación de datos desde la base de datos
-  const proyecto = {
-    id,
-    nombre: 'Proyecto X',
-    descripcion: 'Descripción actual',
-    presupuesto: 1500,
-    fecha_entrega: '2025-05-30',
-    empleados_asignados: [1, 3] // ids
-  };
+  dbhr.get('SELECT * FROM proyectos WHERE id = ?', [id], (err, proyecto) => {
+    if (err || !proyecto) {
+      console.error('Error al obtener proyecto:', err ? err.message : 'Proyecto no encontrado');
+      return res.redirect('/proyectos');
+    }
 
-  const empleados = [
-    { id: 1, nombre: 'Ana Pérez' },
-    { id: 2, nombre: 'Luis Gómez' },
-    { id: 3, nombre: 'Carla Díaz' }
-  ];
+    dbhr.all('SELECT * FROM empleados', (err, empleados) => {
+      if (err) {
+        console.error('Error al obtener empleados:', err.message);
+        return res.redirect('/proyectos');
+      }
 
-  const historial = [
-    { fecha: '2025-05-10', cambio: 'Se cambió la fecha de entrega' },
-    { fecha: '2025-04-20', cambio: 'Se actualizó el presupuesto' }
-  ];
+      dbhr.all('SELECT empleado_id FROM proyecto_empleado WHERE proyecto_id = ?', [id], (err, asignados) => {
+        if (err) {
+          console.error('Error al obtener empleados asignados:', err.message);
+          return res.redirect('/proyectos');
+        }
 
-  res.render('edit-proyect', { proyecto, empleados, historial });
+        const empleadosAsignados = asignados.map(a => a.empleado_id);
+
+        res.render('edit-proyect', {
+          proyecto,
+          empleados,
+          empleados_asignados: empleadosAsignados
+        });
+      });
+    });
+  });
 });
 
-app.post('/editar-proyecto/:id', (req, res) => {
+// Ruta para guardar los cambios de un proyecto
+app.post('/editar-proyecto/:id', requireLogin, (req, res) => {
   const { id } = req.params;
   const { nombre, descripcion, presupuesto, fecha_entrega, empleados } = req.body;
 
-  // Aquí iría la lógica para actualizar en SQLite
-  console.log('Proyecto actualizado:', {
-    id,
-    nombre,
-    descripcion,
-    presupuesto,
-    fecha_entrega,
-    empleados: Array.isArray(empleados) ? empleados : [empleados]
+  dbhr.run(`
+    UPDATE proyectos
+    SET nombre = ?, descripcion = ?, presupuesto = ?, fecha_entrega = ?
+    WHERE id = ?
+  `, [nombre, descripcion, presupuesto, fecha_entrega, id], (err) => {
+    if (err) {
+      console.error('Error al actualizar proyecto:', err.message);
+      return res.redirect('/proyectos');
+    }
+
+    dbhr.run('DELETE FROM proyecto_empleado WHERE proyecto_id = ?', [id], (err) => {
+      if (err) {
+        console.error('Error al limpiar empleados asignados:', err.message);
+        return res.redirect('/proyectos');
+      }
+
+      if (!empleados) return res.redirect('/proyectos');
+
+      const empleadosArray = Array.isArray(empleados) ? empleados : [empleados];
+      const stmt = dbhr.prepare(`
+        INSERT INTO proyecto_empleado (proyecto_id, empleado_id) VALUES (?, ?)
+      `);
+
+      for (let empId of empleadosArray) {
+        stmt.run(id, empId);
+      }
+
+      stmt.finalize();
+      res.redirect('/proyectos');
+    });
   });
-
-  // Redirecciona de vuelta al dashboard o vista del proyecto
-  res.redirect('/proyectos');
 });
-
-
 
 app.listen(port, () => {
   console.log(`Servidor en http://localhost:${port}`);
