@@ -162,19 +162,6 @@ app.get('/proyectos', requireLogin, (req, res) => {
     });
   });
 });
-// app.get('/proyectos', requireLogin, (req, res) => {
-//   dbhr.all('SELECT * FROM proyectos', (err, proyectos) => {
-//     if (err) {
-//       console.error('Error al obtener proyectos:', err.message);
-//       return res.send('Error al cargar proyectos');
-//     }
-
-//     res.render('proyects', {
-//       titulo: 'Dashboard de Proyectos',
-//       proyectos
-//     });
-//   });
-// });
 
 app.get('/proyectos/agregar', (req, res) => {
   obtenerEmpleados((empleados) => {
@@ -283,6 +270,101 @@ app.post('/editar-proyecto/:id', requireLogin, (req, res) => {
     });
   });
 });
+
+//Ruta para mostrar proyectos en papelera
+app.get('/proyectos/papelera', requireLogin, (req, res) => {
+  dbhr.all('SELECT * FROM proyectos WHERE papelera = 1', (err, proyectos) => {
+    if (err) {
+      console.error('Error al obtener proyectos de la papelera:', err.message);
+      return res.send('Error al cargar proyectos de la papelera');
+    }
+
+    const proyectosConEmpleados = [];
+    let pendientes = proyectos.length;
+
+    if (pendientes === 0) {
+      return res.render('papelera', {
+        titulo: 'Papelera de Proyectos',
+        proyectos: proyectosConEmpleados
+      });
+    }
+
+    proyectos.forEach((proyecto) => {
+      dbhr.all('SELECT e.* FROM empleados e INNER JOIN proyecto_empleado pe ON e.id = pe.empleado_id WHERE pe.proyecto_id = ?', [proyecto.id], (err, empleados) => {
+        if (err) {
+          console.error('Error al obtener empleados del proyecto:', err.message);
+          empleados = [];
+        }
+
+        proyectosConEmpleados.push({
+          ...proyecto,
+          empleados
+        });
+
+        pendientes--;
+
+        if (pendientes === 0) {
+          res.render('papelera', {
+            titulo: 'Papelera de Proyectos',
+            proyectos: proyectosConEmpleados
+          });
+        }
+      });
+    });
+  });
+});
+
+// Ruta para eliminar un proyecto (mover a papelera)
+app.get('/proyectos/papelera/:id', requireLogin, (req, res) => {
+  const { id } = req.params;
+
+  dbhr.get('SELECT papelera FROM proyectos WHERE id = ?', [id], (err, row) => {
+    if (err || !row) {
+      console.error('Error al obtener estado de papelera:', err ? err.message : 'Proyecto no encontrado');
+      return res.redirect('/proyectos');
+    }
+
+    const papelera = row.papelera;
+
+    if (papelera === 0) {
+      dbhr.run('UPDATE proyectos SET papelera = 1 WHERE id = ?', [id], (err) => {
+        if (err) {
+          console.error('Error al mover proyecto a papelera:', err.message);
+        }
+        res.redirect('/proyectos');
+      });
+    } else if (papelera === 1) {
+      dbhr.run('UPDATE proyectos SET papelera = 0 WHERE id = ?', [id], (err) => {
+        if (err) {
+          console.error('Error al restaurar proyecto de papelera:', err.message);
+        }
+        res.redirect('/proyectos');
+      });
+    }
+  });
+});
+// app.get('/proyectos/papelera/:id', requireLogin, (req, res) => {
+//   console.log("Hola papelera")
+//   const { id } = req.params;
+  
+//   if (papelera == 0) {
+//     dbhr.run('UPDATE proyectos SET papelera = 1 WHERE id = ?', [id], (err) => {
+//       if (err) {
+//         console.error('Error al mover proyecto a papelera:', err.message);
+//         return res.redirect('/proyectos');
+//       }
+//     });
+//   }
+//   else if (papelera == 1) {
+//     dbhr.run('UPDATE proyectos SET papelera = 0 WHERE id = ?', [id], (err) => {
+//       if (err) {
+//         console.error('Error al restaurar proyecto de papelera:', err.message);
+//         return res.redirect('/proyectos');
+//       }
+//     });
+//     res.redirect('/proyectos');
+//   }
+// });
 
 app.listen(port, () => {
   console.log(`Servidor en http://localhost:${port}`);

@@ -1,3 +1,4 @@
+<%- include('partials/header', { titulo: 'Dashboard de Proyectos' }) %>
 <div class="project-edit">
     <form action="/editar-proyecto/<%= proyecto.id %>" method="POST">
       <label for="nombre">Nombre del Proyecto</label>
@@ -22,3 +23,4 @@
       <button type="submit">Guardar Cambios</button>
     </form>
   </div>
+<%- include('partials/footer') %>

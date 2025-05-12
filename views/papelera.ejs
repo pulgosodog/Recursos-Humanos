@@ -1,14 +1,13 @@
 <%- include('partials/header', { titulo: 'Dashboard de Proyectos' }) %>
 
 <div style="margin-bottom: 1rem;">
-  <a href="/proyectos/agregar" class="btn btn-primary">Agregar Proyecto</a>
-  <a href="/proyectos/papelera" class="btn btn-danger">Ver Papelera</a>
+  <a href="/proyectos" class="btn btn-danger">Regresar a proyectos activos</a>
 </div>
 
-<h2>Proyectos activos</h2>
+<h2>Proyectos en papelera</h2>
 
 <div class="tarjetas">
-<% proyectos = proyectos.filter(p => p.papelera === 0); %>
+<% proyectos = proyectos.filter(p => p.papelera === 1); %>
   <% if (proyectos.length > 0) { %>
     <% proyectos.forEach(p => { %>
       <div class="tarjeta">
@@ -29,7 +28,7 @@
 
         <div class="acciones">
           <a href="/proyectos/editar/<%= p.id %>" class="btn btn-editar">Editar</a>
-          <a href="/proyectos/papelera/<%= p.id %>" class="btn btn-papelera">Mover a Papelera</a>
+          <a href="/proyectos/papelera/<%= p.id %>" class="btn btn-papelera">Restaurar</a>
         </div>
       </div>
     <% }); %>
